@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Foodie — Order Food</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#0f1a2e;
+      --card2:#101f3a;
+      --text:#e8eefc;
+      --muted:#a8b3cf;
+      --brand:#7c5cff;
+      --brand2:#2dd4bf;
+      --danger:#ff4d6d;
+      --ok:#22c55e;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: radial-gradient(1200px 700px at 10% 10%, rgba(124,92,255,.25), transparent 55%),
+                  radial-gradient(1000px 600px at 90% 20%, rgba(45,212,191,.22), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+    }
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:1200px;margin:0 auto;padding:18px}
+    header{
+      position:sticky; top:0; z-index:20;
+      backdrop-filter: blur(10px);
+      background: rgba(11,18,32,.7);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .topbar{
+      display:flex; gap:14px; align-items:center; justify-content:space-between;
+      padding:14px 18px;
+      max-width:1200px;margin:0 auto;
+    }
+    .brand{
+      display:flex;align-items:center;gap:10px;
+      font-weight:800; letter-spacing:.2px;
+    }
+    .logo{
+      width:38px;height:38px;border-radius:12px;
+      background: linear-gradient(135deg, var(--brand), var(--brand2));
+      box-shadow: var(--shadow);
+      display:grid;place-items:center;
+      font-weight:900;
+    }
+    .logo span{filter:drop-shadow(0 10px 12px rgba(0,0,0,.4))}
+    .searchbar{
+      flex:1;
+      display:flex; gap:10px; align-items:center;
+      max-width:560px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 999px;
+      padding:10px 14px;
+    }
+    .searchbar input{
+      width:100%;
+      background:transparent;border:none;outline:none;
+      color:var(--text);
+      font-size:14px;
+    }
+    .pill{
+      display:flex; gap:10px; align-items:center;
+    }
+    .btn{
+      border:none; outline:none;
+      background: rgba(255,255,255,.07);
+      color:var(--text);
+      border: 1px solid rgba(255,255,255,.10);
+      padding:10px 12px;
+      border-radius: 999px;
+      cursor:pointer;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease, opacity .15s ease;
+      display:inline-flex; align-items:center; gap:8px;
+      font-weight:600;
+      user-select:none;
+    }
+    .btn:hover{transform: translateY(-1px); background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.16)}
+    .btn:disabled{opacity:.6; cursor:not-allowed; transform:none}
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(124,92,255,.95), rgba(45,212,191,.92));
+      border: none;
+    }
+    .btn.danger{background: rgba(255,77,109,.12); border-color: rgba(255,77,109,.35)}
+    .badge{
+      min-width:22px;height:22px;border-radius:999px;
+      background: rgba(0,0,0,.25);
+      display:grid;place-items:center;
+      font-size:12px;
+      padding:0 6px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:18px;
+      padding-top:18px;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr}
+    }
+
+    .panel{
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    .filters{
+      display:flex; flex-wrap:wrap; gap:10px;
+      padding:14px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      background: rgba(0,0,0,.08);
+    }
+    .chip{
+      padding:9px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      cursor:pointer;
+      font-weight:700;
+      font-size:13px;
+      transition: .15s ease;
+      user-select:none;
+    }
+    .chip:hover{background: rgba(255,255,255,.10)}
+    .chip.active{
+      background: linear-gradient(135deg, rgba(124,92,255,.35), rgba(45,212,191,.25));
+      border-color: rgba(124,92,255,.55);
+    }
+
+    .menu{
+      padding:14px;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:14px;
+    }
+    @media (max-width: 1100px){ .menu{grid-template-columns: repeat(2, 1fr);} }
+    @media (max-width: 560px){
+      .menu{grid-template-columns: 1fr;}
+      .topbar{flex-wrap:wrap}
+      .searchbar{order:3; width:100%; max-width:none;}
+      .pill{width:100%; justify-content:flex-end}
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 18px;
+      overflow:hidden;
+      position:relative;
+      transition: transform .18s ease, border-color .18s ease;
+    }
+    .card:hover{transform: translateY(-3px); border-color: rgba(255,255,255,.18)}
+
+    /* REAL IMAGE THUMB */
+    .thumb{
+      height:150px;
+      position:relative;
+      overflow:hidden;
+      background: rgba(0,0,0,.2);
+    }
+    .thumb img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+      transform: scale(1.02);
+      filter: contrast(1.05) saturate(1.1);
+    }
+    .thumb::after{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.55));
+      pointer-events:none;
+    }
+    .tag, .rating{
+      position:absolute;
+      z-index:2;
+    }
+    .tag{
+      left:10px; bottom:10px;
+      font-size:12px; font-weight:800;
+      padding:6px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.25);
+      border: 1px solid rgba(255,255,255,.10);
+      color: var(--text);
+    }
+    .rating{
+      right:10px; top:10px;
+      font-size:12px; font-weight:900;
+      padding:6px 10px;
+      border-radius: 999px;
+      background: rgba(34,197,94,.14);
+      border: 1px solid rgba(34,197,94,.35);
+    }
+
+    .cardbody{padding:12px}
+    .title{
+      font-weight:900;
+      margin:2px 0 6px;
+      letter-spacing:.2px;
+    }
+    .desc{color:var(--muted); font-size:13px; line-height:1.35; min-height:34px}
+    .row{
+      margin-top:10px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .price{
+      font-weight:900;
+      font-size:16px;
+    }
+    .small{font-size:12px;color:var(--muted); font-weight:700}
+
+    /* Cart */
+    .cartHead{
+      padding:14px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      display:flex; align-items:center; justify-content:space-between;
+      background: rgba(0,0,0,.10);
+    }
+    .cartHead h3{margin:0;font-size:16px}
+    .cartBody{padding:14px; display:flex; flex-direction:column; gap:12px; max-height: 60vh; overflow:auto}
+    .cartItem{
+      display:flex; gap:10px; align-items:flex-start;
+      padding:10px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.04);
+    }
+    .cartImg{
+      width:42px;
+      height:42px;
+      border-radius:14px;
+      object-fit:cover;
+      border: 1px solid rgba(255,255,255,.10);
+      flex:0 0 auto;
+    }
+    .cartInfo{flex:1}
+    .cartInfo .name{font-weight:900}
+    .cartInfo .meta{color:var(--muted); font-size:12px; margin-top:2px}
+    .qty{
+      display:flex; align-items:center; gap:8px;
+      margin-top:8px;
+      flex-wrap:wrap;
+    }
+    .iconBtn{
+      width:30px;height:30px;border-radius:999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      cursor:pointer;
+      font-weight:900;
+      display:grid;place-items:center;
+      transition:.15s ease;
+      user-select:none;
+    }
+    .iconBtn:hover{background: rgba(255,255,255,.10)}
+    .qty span{font-weight:900; min-width:16px; text-align:center}
+    .remove{
+      background: rgba(255,77,109,.12);
+      border-color: rgba(255,77,109,.35);
+    }
+    .cartFoot{
+      padding:14px;
+      border-top: 1px solid rgba(255,255,255,.07);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      background: rgba(0,0,0,.10);
+    }
+    .line{
+      display:flex; align-items:center; justify-content:space-between;
+      color: var(--muted);
+      font-weight:700;
+      font-size:13px;
+    }
+    .line strong{color:var(--text)}
+    .empty{
+      color: var(--muted);
+      text-align:center;
+      padding:20px 10px;
+      border: 1px dashed rgba(255,255,255,.18);
+      border-radius: 14px;
+      background: rgba(255,255,255,.03);
+    }
+
+    /* Modal */
+    .modalOverlay{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:center; justify-content:center;
+      padding:16px;
+      z-index:50;
+    }
+    .modal{
+      width:min(560px, 96vw);
+      border-radius: 22px;
+      background: rgba(15,26,46,.92);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modalTop{
+      padding:14px 16px;
+      display:flex; align-items:center; justify-content:space-between;
+      background: rgba(0,0,0,.12);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .modalTop h3{margin:0;font-size:16px}
+    .modalBody{padding:16px}
+    .form{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+    .form .full{grid-column: 1 / -1}
+    label{font-size:12px;color:var(--muted);font-weight:800}
+    input, textarea, select{
+      width:100%;
+      margin-top:6px;
+      padding:10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      outline:none;
+    }
+    textarea{min-height:88px; resize:vertical}
+    .modalActions{
+      padding:14px 16px;
+      display:flex; gap:10px; justify-content:flex-end;
+      border-top: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.12);
+    }
+    .toast{
+      position: fixed;
+      left:50%;
+      transform: translateX(-50%);
+      bottom: 18px;
+      background: rgba(15,26,46,.92);
+      border: 1px solid rgba(255,255,255,.12);
+      padding: 10px 12px;
+      border-radius: 999px;
+      display:none;
+      align-items:center;
+      gap:10px;
+      z-index:60;
+      box-shadow: var(--shadow);
+      font-weight:800;
+    }
+    .dotOk{width:10px;height:10px;border-radius:999px;background:var(--ok)}
+    .dotBad{width:10px;height:10px;border-radius:999px;background:var(--danger)}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo"><span>F</span></div>
+      <div>
+        <div style="font-size:15px">Foodie</div>
+        <div class="small">Order delicious food</div>
+      </div>
+    </div>
+
+    <div class="searchbar" title="Search dishes">
+      <span style="opacity:.8">🔎</span>
+      <input id="searchInput" placeholder="Search for pizza, burger, dessert..." />
+    </div>
+
+    <div class="pill">
+      <button class="btn" id="sortBtn" title="Sort options">↕ Sort</button>
+      <button class="btn primary" id="openCheckoutBtn" title="Checkout">
+        🧾 Checkout <span class="badge" id="cartCount">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+
+    <!-- LEFT: MENU -->
+    <section class="panel">
+      <div class="filters">
+        <div class="chip active" data-cat="All">All</div>
+        <div class="chip" data-cat="Pizza">Pizza</div>
+        <div class="chip" data-cat="Burger">Burger</div>
+        <div class="chip" data-cat="Biryani">Biryani</div>
+        <div class="chip" data-cat="Dessert">Dessert</div>
+        <div class="chip" data-cat="Drinks">Drinks</div>
+        <div style="margin-left:auto; display:flex; gap:10px; flex-wrap:wrap;">
+          <div class="chip" id="vegOnlyChip" title="Show Veg items only">🥗 Veg Only</div>
+          <div class="chip" id="highRatedChip" title="Rating 4.5+">⭐ 4.5+</div>
+        </div>
+      </div>
+      <div class="menu" id="menu"></div>
+    </section>
+
+    <!-- RIGHT: CART -->
+    <aside class="panel">
+      <div class="cartHead">
+        <h3>🛒 Your Cart</h3>
+        <button class="btn danger" id="clearCartBtn">Clear</button>
+      </div>
+
+      <div class="cartBody" id="cartBody">
+        <div class="empty">Cart is empty. Add items to start your order 🍔🍕</div>
+      </div>
+
+      <div class="cartFoot">
+        <div class="line"><span>Subtotal</span><strong id="subTotal">₹0</strong></div>
+        <div class="line"><span>Tax (5%)</span><strong id="tax">₹0</strong></div>
+        <div class="line"><span>Delivery</span><strong id="delivery">₹0</strong></div>
+        <div class="line" style="font-size:14px">
+          <span>Total</span>
+          <strong id="grandTotal">₹0</strong>
+        </div>
+        <button class="btn primary" id="checkoutBtn">Proceed to Checkout</button>
+        <div class="small" id="deliveryNote">Tip: Add ₹299+ for free delivery</div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<!-- MODAL: Checkout -->
+<div class="modalOverlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modalTop">
+      <h3>Checkout</h3>
+      <button class="btn" id="closeModalBtn">✖</button>
+    </div>
+    <div class="modalBody">
+      <div id="orderSummary" class="panel" style="padding:12px; margin-bottom:12px;">
+        <div class="line"><span>Items</span><strong id="sumItems">0</strong></div>
+        <div class="line"><span>Total</span><strong id="sumTotal">₹0</strong></div>
+      </div>
+
+      <form class="form" id="checkoutForm">
+        <div>
+          <label>Full Name</label>
+          <input id="name" placeholder="Your name" required />
+        </div>
+        <div>
+          <label>Phone</label>
+          <input id="phone" placeholder="10-digit mobile" maxlength="10" required />
+        </div>
+        <div class="full">
+          <label>Address</label>
+          <textarea id="address" placeholder="House/Street/Area/City" required></textarea>
+        </div>
+        <div>
+          <label>Payment</label>
+          <select id="payment" required>
+            <option value="COD">Cash on Delivery</option>
+            <option value="UPI">UPI</option>
+            <option value="Card">Card</option>
+          </select>
+        </div>
+        <div>
+          <label>Delivery Time</label>
+          <select id="time" required>
+            <option value="ASAP">ASAP (30-45 mins)</option>
+            <option value="60">In 60 mins</option>
+            <option value="90">In 90 mins</option>
+          </select>
+        </div>
+        <div class="full small" style="color:var(--muted); font-weight:700;">
+          By placing order, you agree to our terms.
+        </div>
+      </form>
+
+      <div id="successBox" style="display:none; padding:14px; border-radius:16px; background: rgba(34,197,94,.10); border: 1px solid rgba(34,197,94,.35);">
+        <div style="font-weight:900; font-size:16px;">✅ Order Placed Successfully!</div>
+        <div class="small" id="successText" style="margin-top:6px;"></div>
+      </div>
+    </div>
+    <div class="modalActions">
+      <button class="btn" id="cancelBtn">Cancel</button>
+      <button class="btn primary" id="placeOrderBtn">Place Order</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="dotOk" id="toastDot"></span><span id="toastText">Added</span></div>
+
+<script>
+  // ---------- DATA ----------
+  const fallbackImg = "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80";
+
+  const foods = [
+    {id: 1, name:"Cheese Burst Pizza", cat:"Pizza", veg:true,  price:299, rating:4.7, desc:"Extra cheese, soft crust, premium toppings.",
+      img:"https://images.unsplash.com/photo-1548365328-8b849e6f2955?auto=format&fit=crop&w=1200&q=80"
+    },
+    {id: 2, name:"Pepper Paneer Pizza", cat:"Pizza", veg:true,  price:269, rating:4.5, desc:"Spicy paneer + capsicum, loaded flavor.",
+      img:"https://images.unsplash.com/photo-1590947132387-155cc02f3212?auto=format&fit=crop&w=1200&q=80"
+    },
+    {id: 3, name:"Classic Chicken Pizza", cat:"Pizza", veg:false, price:319, rating:4.6, desc:"Juicy chicken, oregano, cheese & sauce.",
+      img:"https://images.unsplash.com/photo-1601924582970-9238bcb495d9?auto=format&fit=crop&w=1200&q=80"
+    },
+
+    {id: 4, name:"Crispy Veg Burger", cat:"Burger", veg:true,  price:159, rating:4.4, desc:"Crunchy patty with fresh lettuce & mayo.",
+      img:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=80"
+    },
+    {id: 5, name:"Chicken Crunch Burger", cat:"Burger", veg:false, price:189, rating:4.6, desc:"Crispy chicken patty, spicy sauce, soft bun.",
+      img:"https://images.unsplash.com/photo-1550317138-10000687a72b?auto=format&fit=crop&w=1200&q=80"
+    },
+    {id: 6, name:"Double Patty Burger", cat:"Burger", veg:false, price:229, rating:4.5, desc:"Double patty, extra cheese, more satisfaction.",
+      img:"https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1200&q=80"
+    },
+
+    {id: 7, name:"Hyderabadi Biryani", cat:"Biryani", veg:false, price:279, rating:4.7, desc:"Aromatic rice, rich masala, authentic taste.",
+      img:"https://images.unsplash.com/photo-1631515243349-e0cb75fb8d3a?auto=format&fit=crop&w=1200&q=80"
+    },
+    {id: 8, name:"Paneer Biryani", cat:"Biryani", veg:true,  price:249, rating:4.4, desc:"Paneer cubes, fragrant spices, comfort meal.",
+      img:"https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=1200&q=80"
+    },
+    {id: 9, name:"Egg Biryani", cat:"Biryani", veg:false, price:239, rating:4.3, desc:"Boiled eggs, flavorful masala & rice.",
+      img:"https://images.unsplash.com/photo-1600628422019-5b0bce0b0f84?auto=format&fit=crop&w=1200&q=80"
+    },
+
+    {id:10, name:"Choco Lava Cake", cat:"Dessert", veg:true,  price:129, rating:4.8, desc:"Warm cake with molten chocolate center.",
+      img:"https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=1200&q=80"
+    },
+    {id:11, name:"Gulab Jamun", cat:"Dessert", veg:true,  price:99,  rating:4.5, desc:"Soft, sweet, syrupy, classic Indian dessert.",
+      img:"https://images.unsplash.com/photo-1621939514649-280e2ee25f71?auto=format&fit=crop&w=1200&q=80"
+    },
+
+    {id:12, name:"Cold Coffee", cat:"Drinks", veg:true,  price:119, rating:4.4, desc:"Icy coffee, creamy texture, energy boost.",
+      img:"https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=1200&q=80"
+    },
+    {id:13, name:"Mint Mojito", cat:"Drinks", veg:true,  price:109, rating:4.3, desc:"Refreshing mint, lemon, soda with chill.",
+      img:"https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=1200&q=80"
+    },
+    {id: 2, name:"Pepper Paneer Pizza", cat:"Pizza", veg:true,  price:269, rating:4.5, desc:"Spicy paneer + capsicum, loaded flavor.",
+      img:"https://images.unsplash.com/photo-1590947132387-155cc02f3212?auto=format&fit=crop&w=1200&q=80"
+    },
+    {id: 3, name:"Classic Chicken Pizza", cat:"Pizza", veg:false, price:319, rating:4.6, desc:"Juicy chicken, oregano, cheese & sauce.",
+      img:"https://images.unsplash.com/photo-1601924582970-9238bcb495d9?auto=format&fit=crop&w=1200&q=80"
+    }
+  ];
+
+  // ---------- STATE ----------
+  let activeCat = "All";
+  let vegOnly = false;
+  let highRated = false;
+  let searchTerm = "";
+  let sortMode = "NONE"; // PRICE_LOW, PRICE_HIGH, RATING
+
+  // cart: { [id]: qty }
+  let cart = JSON.parse(localStorage.getItem("foodie_cart") || "{}");
+
+  // ---------- ELEMENTS ----------
+  const menuEl = document.getElementById("menu");
+  const cartBodyEl = document.getElementById("cartBody");
+  const cartCountEl = document.getElementById("cartCount");
+  const subTotalEl = document.getElementById("subTotal");
+  const taxEl = document.getElementById("tax");
+  const deliveryEl = document.getElementById("delivery");
+  const grandTotalEl = document.getElementById("grandTotal");
+  const deliveryNoteEl = document.getElementById("deliveryNote");
+
+  const searchInput = document.getElementById("searchInput");
+  const sortBtn = document.getElementById("sortBtn");
+  const clearCartBtn = document.getElementById("clearCartBtn");
+  const checkoutBtn = document.getElementById("checkoutBtn");
+  const openCheckoutBtn = document.getElementById("openCheckoutBtn");
+
+  const vegOnlyChip = document.getElementById("vegOnlyChip");
+  const highRatedChip = document.getElementById("highRatedChip");
+
+  const modalOverlay = document.getElementById("modalOverlay");
+  const closeModalBtn = document.getElementById("closeModalBtn");
+  const cancelBtn = document.getElementById("cancelBtn");
+  const placeOrderBtn = document.getElementById("placeOrderBtn");
+
+  const sumItemsEl = document.getElementById("sumItems");
+  const sumTotalEl = document.getElementById("sumTotal");
+  const successBox = document.getElementById("successBox");
+  const successText = document.getElementById("successText");
+  const checkoutForm = document.getElementById("checkoutForm");
+
+  const toastEl = document.getElementById("toast");
+  const toastTextEl = document.getElementById("toastText");
+  const toastDot = document.getElementById("toastDot");
+
+  // ---------- HELPERS ----------
+  const money = (n) => `₹${Math.round(n)}`;
+
+  function saveCart(){
+    localStorage.setItem("foodie_cart", JSON.stringify(cart));
+  }
+
+  function toast(msg, ok=true){
+    toastTextEl.textContent = msg;
+    toastDot.className = ok ? "dotOk" : "dotBad";
+    toastEl.style.display = "flex";
+    clearTimeout(window.__t);
+    window.__t = setTimeout(()=> toastEl.style.display="none", 1800);
+  }
+
+  function getFilteredFoods(){
+    let list = [...foods];
+
+    // category
+    if(activeCat !== "All"){
+      list = list.filter(f => f.cat === activeCat);
+    }
+
+    // veg only
+    if(vegOnly){
+      list = list.filter(f => f.veg);
+    }
+
+    // high rated
+    if(highRated){
+      list = list.filter(f => f.rating >= 4.5);
+    }
+
+    // search
+    if(searchTerm.trim()){
+      const t = searchTerm.toLowerCase();
+      list = list.filter(f =>
+        f.name.toLowerCase().includes(t) ||
+        f.cat.toLowerCase().includes(t) ||
+        f.desc.toLowerCase().includes(t)
+      );
+    }
+
+    // sort
+    if(sortMode === "PRICE_LOW") list.sort((a,b)=>a.price-b.price);
+    if(sortMode === "PRICE_HIGH") list.sort((a,b)=>b.price-a.price);
+    if(sortMode === "RATING") list.sort((a,b)=>b.rating-a.rating);
+
+    return list;
+  }
+
+  function cartTotals(){
+    let subtotal = 0;
+    let itemsCount = 0;
+
+    for(const idStr in cart){
+      const id = Number(idStr);
+      const qty = cart[idStr];
+      const item = foods.find(f=>f.id===id);
+      if(item){
+        subtotal += item.price * qty;
+        itemsCount += qty;
+      }
+    }
+
+    const tax = subtotal * 0.05;
+    const delivery = subtotal >= 299 || subtotal === 0 ? 0 : 39;
+    const grand = subtotal + tax + delivery;
+
+    return {subtotal, tax, delivery, grand, itemsCount};
+  }
+
+  // ---------- RENDER ----------
+  function renderMenu(){
+    const list = getFilteredFoods();
+
+    if(list.length === 0){
+      menuEl.innerHTML = `
+        <div class="empty" style="grid-column:1/-1;">
+          No items found. Try a different search/filter 🍽️
+        </div>`;
+      return;
+    }
+
+    menuEl.innerHTML = list.map(item => {
+      const vegTag = item.veg ? "🥗 Veg" : "🍗 Non-Veg";
+      return `
+        <div class="card">
+          <div class="thumb">
+            <img src="${item.img}" alt="${item.name}"
+              onerror="this.onerror=null;this.src='${fallbackImg}'">
+            <div class="tag">${item.cat} • ${vegTag}</div>
+            <div class="rating">⭐ ${item.rating.toFixed(1)}</div>
+          </div>
+          <div class="cardbody">
+            <div class="title">${item.name}</div>
+            <div class="desc">${item.desc}</div>
+            <div class="row">
+              <div>
+                <div class="price">${money(item.price)}</div>
+                <div class="small">Best seller</div>
+              </div>
+              <button class="btn primary" onclick="addToCart(${item.id})">➕ Add</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function renderCart(){
+    const keys = Object.keys(cart);
+
+    if(keys.length === 0){
+      cartBodyEl.innerHTML = `<div class="empty">Cart is empty. Add items to start your order 🍔🍕</div>`;
+      updateTotalsUI();
+      return;
+    }
+
+    const items = keys.map(idStr=>{
+      const id = Number(idStr);
+      const qty = cart[idStr];
+      const item = foods.find(f=>f.id===id);
+      if(!item) return "";
+      return `
+        <div class="cartItem">
+          <img class="cartImg" src="${item.img}" alt="${item.name}"
+            onerror="this.onerror=null;this.src='${fallbackImg}&w=300'">
+          <div class="cartInfo">
+            <div class="name">${item.name}</div>
+            <div class="meta">${item.cat} • ${item.veg ? "Veg" : "Non-Veg"} • ${money(item.price)} each</div>
+            <div class="qty">
+              <button class="iconBtn" onclick="decQty(${item.id})">−</button>
+              <span>${qty}</span>
+              <button class="iconBtn" onclick="incQty(${item.id})">+</button>
+              <button class="iconBtn remove" title="Remove item" onclick="removeItem(${item.id})">🗑</button>
+            </div>
+          </div>
+          <div style="font-weight:900;">${money(item.price * qty)}</div>
+        </div>
+      `;
+    }).join("");
+
+    cartBodyEl.innerHTML = items;
+    updateTotalsUI();
+  }
+
+  function updateTotalsUI(){
+    const {subtotal, tax, delivery, grand, itemsCount} = cartTotals();
+    cartCountEl.textContent = itemsCount;
+
+    subTotalEl.textContent = money(subtotal);
+    taxEl.textContent = money(tax);
+    deliveryEl.textContent = money(delivery);
+    grandTotalEl.textContent = money(grand);
+
+    if(subtotal === 0){
+      deliveryNoteEl.textContent = "Tip: Add ₹299+ for free delivery";
+    }else if(subtotal < 299){
+      deliveryNoteEl.textContent = `Add ${money(299 - subtotal)} more for free delivery`;
+    }else{
+      deliveryNoteEl.textContent = "🎉 Free delivery unlocked!";
+    }
+
+    sumItemsEl.textContent = itemsCount;
+    sumTotalEl.textContent = money(grand);
+
+    const disabled = itemsCount === 0;
+    checkoutBtn.disabled = disabled;
+    openCheckoutBtn.disabled = disabled;
+  }
+
+  // ---------- CART ACTIONS (global for onclick) ----------
+  window.addToCart = function(id){
+    cart[id] = (cart[id] || 0) + 1;
+    saveCart();
+    renderCart();
+    toast("Added to cart ✅", true);
+  }
+
+  window.incQty = function(id){
+    cart[id] = (cart[id] || 0) + 1;
+    saveCart();
+    renderCart();
+  }
+
+  window.decQty = function(id){
+    if(!cart[id]) return;
+    cart[id] -= 1;
+    if(cart[id] <= 0) delete cart[id];
+    saveCart();
+    renderCart();
+  }
+
+  window.removeItem = function(id){
+    delete cart[id];
+    saveCart();
+    renderCart();
+    toast("Removed ❌", false);
+  }
+
+  // ---------- FILTERS ----------
+  document.querySelectorAll(".chip[data-cat]").forEach(chip=>{
+    chip.addEventListener("click", ()=>{
+      document.querySelectorAll(".chip[data-cat]").forEach(c=>c.classList.remove("active"));
+      chip.classList.add("active");
+      activeCat = chip.dataset.cat;
+      renderMenu();
+    });
+  });
+
+  vegOnlyChip.addEventListener("click", ()=>{
+    vegOnly = !vegOnly;
+    vegOnlyChip.classList.toggle("active", vegOnly);
+    renderMenu();
+  });
+
+  highRatedChip.addEventListener("click", ()=>{
+    highRated = !highRated;
+    highRatedChip.classList.toggle("active", highRated);
+    renderMenu();
+  });
+
+  searchInput.addEventListener("input", (e)=>{
+    searchTerm = e.target.value;
+    renderMenu();
+  });
+
+  // ---------- SORT ----------
+  sortBtn.addEventListener("click", ()=>{
+    if(sortMode === "NONE") sortMode = "PRICE_LOW";
+    else if(sortMode === "PRICE_LOW") sortMode = "PRICE_HIGH";
+    else if(sortMode === "PRICE_HIGH") sortMode = "RATING";
+    else sortMode = "NONE";
+
+    const label = {
+      NONE: "↕ Sort",
+      PRICE_LOW: "⬆ Price",
+      PRICE_HIGH: "⬇ Price",
+      RATING: "⭐ Rating"
+    }[sortMode];
+
+    sortBtn.textContent = label;
+    renderMenu();
+  });
+
+  // ---------- CLEAR CART ----------
+  clearCartBtn.addEventListener("click", ()=>{
+    cart = {};
+    saveCart();
+    renderCart();
+    toast("Cart cleared", false);
+  });
+
+  // ---------- MODAL ----------
+  function openModal(){
+    if(cartTotals().itemsCount === 0){
+      toast("Cart is empty", false);
+      return;
+    }
+    successBox.style.display = "none";
+    checkoutForm.style.display = "grid";
+    placeOrderBtn.style.display = "inline-flex";
+
+    modalOverlay.style.display = "flex";
+  }
+  function closeModal(){
+    modalOverlay.style.display = "none";
+  }
+
+  checkoutBtn.addEventListener("click", openModal);
+  openCheckoutBtn.addEventListener("click", openModal);
+  closeModalBtn.addEventListener("click", closeModal);
+  cancelBtn.addEventListener("click", closeModal);
+  modalOverlay.addEventListener("click", (e)=>{
+    if(e.target === modalOverlay) closeModal();
+  });
+
+  // ---------- PLACE ORDER ----------
+  placeOrderBtn.addEventListener("click", ()=>{
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const address = document.getElementById("address").value.trim();
+    const payment = document.getElementById("payment").value;
+    const time = document.getElementById("time").value;
+
+    if(!name || !address || phone.length !== 10 || !/^\d{10}$/.test(phone)){
+      toast("Please fill valid details", false);
+      return;
+    }
+
+    const {grand, itemsCount} = cartTotals();
+    const orderId = "FD" + Math.floor(100000 + Math.random()*900000);
+
+    checkoutForm.style.display = "none";
+    placeOrderBtn.style.display = "none";
+    successBox.style.display = "block";
+    successText.innerHTML = `
+      Order <b>#${orderId}</b> for <b>${itemsCount}</b> items is confirmed.<br/>
+      Total: <b>${money(grand)}</b> • Payment: <b>${payment}</b> • Time: <b>${time === "ASAP" ? "ASAP" : time+" mins"}</b><br/>
+      Delivering to: <b>${name}</b> (${phone})
+    `;
+
+    cart = {};
+    saveCart();
+    renderCart();
+  });
+
+  // ---------- INIT ----------
+  renderMenu();
+  renderCart();
+</script>
+
+</body>
+</html>
